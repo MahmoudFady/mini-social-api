@@ -7,6 +7,7 @@ server.listen(PORT, (err) => {
     console.log(err.message);
     return;
   }
+  console.log("- ".repeat(15));
   console.log("server running on port " + PORT);
   console.log("url : http://localhost:" + PORT);
 });
