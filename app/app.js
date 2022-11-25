@@ -3,6 +3,11 @@ const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
 const { DATA_BASE_URL } = process.env;
+const userRoutes = require("./routes/user");
+const postRoutes = require("./routes/post");
+const commentRoutes = require("./routes/comment");
+const replayRoutes = require("./routes/replay");
+
 // built in middlewares
 const bodyParser = require("body-parser");
 const morgan = require("morgan");
@@ -24,4 +29,11 @@ mongoose
     console.log(err.mongoose);
     console.log("- ".repeat(15));
   });
+app.use("/api/dir/user", userRoutes);
+app.use("/api/dir/post", postRoutes);
+app.use("/api/dir/comment", commentRoutes);
+app.use("/api/dir/replay", replayRoutes);
+app.use((req, res, next) => {
+  res.status(404).json({ message: "unknow request to api routes" });
+});
 module.exports = app;

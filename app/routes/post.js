@@ -1,0 +1,11 @@
+const express = require("express");
+const router = express.Router();
+const postController = require("../controller/post");
+router.get("/", postController.getAll);
+router.post("/", postController.create);
+router.patch("/:id", postController.update);
+router.get("/:id", postController.getById);
+router.delete("/:id", postController.delete);
+router.post("/push-like/:id", postController.pushLike);
+router.post("/pop-like/:id", postController.popLike);
+module.exports = router;
