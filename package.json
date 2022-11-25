@@ -1,0 +1,12 @@
+{
+  "name": "mini-social-api",
+  "version": "1.0.0",
+  "description": "it is mini social api app",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
