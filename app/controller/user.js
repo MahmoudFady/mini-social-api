@@ -29,8 +29,22 @@ module.exports.signup = async (req, res, next) => {
   });
 };
 
-module.exports.singin = (req, res, next) => {
-  res.status(200).json({ message: "signin route" });
+module.exports.singin = async (req, res, next) => {
+  const { email, phoneNumber, password } = req.body;
+  const criteria = email ? { email } : { phoneNumber };
+  const existedUser = await User.findOne(criteria);
+  if (!existedUser) {
+    return res
+      .status(204)
+      .json({ message: "account does't exisit", user: null });
+  }
+  const isPasswordSame = await bcrypt.compare(password, existedUser.password);
+  if (!isPasswordSame) {
+    return res.status(401).json({ message: "wrong password", user: null });
+  }
+  return res
+    .status(200)
+    .json({ message: "successfully signin", user: existedUser });
 };
 module.exports.update = (req, res, next) => {
   res.status(200).json({ message: "update route" });
