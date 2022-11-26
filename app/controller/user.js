@@ -25,11 +25,12 @@ module.exports.signup = async (req, res, next) => {
       address: { country, state, city },
       birthDate: new Date(birthDate),
       password: hash,
-    })
-      .save()
-      .select("-password");
-    const token = jwt.sign({ _id: newUser._id, email }, JWT_KEY_WORD);
-    return res.status(201).json({
+    }).save();
+    const token = jwt.sign(
+      { _id: newUser._id, email: newUser.email },
+      JWT_KEY_WORD
+    );
+    return res.status(200).json({
       message: "user signed up",
       user: newUser,
       token,
@@ -66,8 +67,26 @@ module.exports.singin = async (req, res, next) => {
     res.status(500).json({ message: "something go wrong" });
   }
 };
-module.exports.update = (req, res, next) => {
-  res.status(200).json({ message: "update route" });
+module.exports.update = async (decode, req, res, next) => {
+  try {
+    const userId = decode._id;
+    const { fullName, address } = req.body;
+    const { country, state, city } = address;
+    await User.updateOne(
+      { _id: userId },
+      {
+        $set: {
+          fullName,
+          address: { country, state, city },
+        },
+      }
+    );
+    return res
+      .status(200)
+      .json({ message: "user info updated", updated: true });
+  } catch (err) {
+    res.status(500).json({ message: "something go wrong", updated: false });
+  }
 };
 module.exports.getById = async (req, res, next) => {
   try {

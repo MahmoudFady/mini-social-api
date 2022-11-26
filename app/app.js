@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express = require("express");
+const path = require("path");
 const app = express();
 const mongoose = require("mongoose");
 const { DATA_BASE_URL } = process.env;
@@ -15,6 +16,8 @@ const morgan = require("morgan");
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(morgan("dev"));
+// add static folder
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // connect to data base
 mongoose
   .connect(DATA_BASE_URL)
