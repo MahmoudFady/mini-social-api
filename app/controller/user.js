@@ -1,4 +1,6 @@
 const User = require("../model/user");
+const jwt = require("jsonwebtoken");
+const { JWT_KEY_WORD } = process.env;
 const bcrypt = require("bcrypt");
 module.exports.signup = async (req, res, next) => {
   try {
@@ -23,10 +25,14 @@ module.exports.signup = async (req, res, next) => {
       address: { country, state, city },
       birthDate: new Date(birthDate),
       password: hash,
-    }).save();
+    })
+      .save()
+      .select("-password");
+    const token = jwt.sign({ _id: newUser._id, email }, JWT_KEY_WORD);
     return res.status(201).json({
       message: "user signed up",
       user: newUser,
+      token,
     });
   } catch (err) {
     res.status(500).json({ message: "something go wrong" });
@@ -49,9 +55,13 @@ module.exports.singin = async (req, res, next) => {
     if (!isPasswordSame) {
       return res.status(401).json({ message: "wrong password", user: null });
     }
+    const token = jwt.sign(
+      { _id: existedUser._id, email: existedUser.email },
+      JWT_KEY_WORD
+    );
     return res
       .status(200)
-      .json({ message: "successfully signin", user: existedUser });
+      .json({ message: "successfully signin", user: existedUser, token });
   } catch (err) {
     res.status(500).json({ message: "something go wrong" });
   }
@@ -59,6 +69,17 @@ module.exports.singin = async (req, res, next) => {
 module.exports.update = (req, res, next) => {
   res.status(200).json({ message: "update route" });
 };
-module.exports.getById = (req, res, next) => {
-  res.status(200).json({ message: "get by id route" });
+module.exports.getById = async (req, res, next) => {
+  try {
+    const id = req.params["id"];
+    const user = await User.findById(id).select("-password");
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "user does not exist", user: null });
+    }
+    return res.status(200).json({ message: "successfully get the user", user });
+  } catch (err) {
+    res.status(500).json({ message: "something go wrong" });
+  }
 };
