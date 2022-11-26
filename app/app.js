@@ -13,6 +13,7 @@ const bodyParser = require("body-parser");
 const morgan = require("morgan");
 // use the middleware
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 app.use(morgan("dev"));
 // connect to data base
 mongoose
@@ -29,6 +30,20 @@ mongoose
     console.log(err.mongoose);
     console.log("- ".repeat(15));
   });
+// add cors (cross origin resource sharing)
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept , Authorization"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET ,POST , PATCH , PUT , DELETE , OPTIONS"
+  );
+  next();
+});
+// api routes
 app.use("/api/dir/user", userRoutes);
 app.use("/api/dir/post", postRoutes);
 app.use("/api/dir/comment", commentRoutes);
