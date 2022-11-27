@@ -107,6 +107,7 @@ module.exports.searchByName = async (req, res, next) => {
     res.status(500).json({ message: "something go wrong" });
   }
 };
+
 module.exports.getById = async (req, res, next) => {
   try {
     const id = req.params["id"];
