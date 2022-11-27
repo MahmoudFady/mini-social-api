@@ -2,6 +2,13 @@ const User = require("../model/user");
 const jwt = require("jsonwebtoken");
 const { JWT_KEY_WORD } = process.env;
 const bcrypt = require("bcrypt");
+const { updateOne } = require("../model/user");
+module.exports.getAll = async (req, res, next) => {
+  const users = await User.find().select("-password");
+  res
+    .status(200)
+    .json({ message: "all users", usersCount: users.length, users });
+};
 module.exports.signup = async (req, res, next) => {
   try {
     const { fullName, email, phoneNumber, address, birthDate, password } =
@@ -88,6 +95,18 @@ module.exports.update = async (decode, req, res, next) => {
     res.status(500).json({ message: "something go wrong", updated: false });
   }
 };
+module.exports.searchByName = async (req, res, next) => {
+  try {
+    const name = req.query["name"];
+    const regex = new RegExp(name);
+    const users = await User.find({
+      fullName: { $regex: regex, $options: "i" },
+    }).select("_id fullName imagePath");
+    res.status(200).json({ usersCount: users.length, users });
+  } catch (err) {
+    res.status(500).json({ message: "something go wrong" });
+  }
+};
 module.exports.getById = async (req, res, next) => {
   try {
     const id = req.params["id"];
@@ -98,6 +117,18 @@ module.exports.getById = async (req, res, next) => {
         .json({ message: "user does not exist", user: null });
     }
     return res.status(200).json({ message: "successfully get the user", user });
+  } catch (err) {
+    res.status(500).json({ message: "something go wrong" });
+  }
+};
+module.exports.updateProfileImage = async (decode, req, res, next) => {
+  try {
+    const userId = decode._id;
+    const imagePath =
+      req.protocol + "://" + req.get("host") + "/uploads/" + req.file.filename;
+    console.log(imagePath);
+    await User.updateOne({ _id: userId }, { $set: { imagePath } });
+    res.status(200).json({ message: "profile image updated", imagePath });
   } catch (err) {
     res.status(500).json({ message: "something go wrong" });
   }
