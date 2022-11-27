@@ -13,7 +13,15 @@ const postSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  imagesPath: {
+    type: Array,
+    default: [],
+  },
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
+  metaData: {
+    likesCount: { type: Number, default: 0 },
+    commentsCount: { type: Number, default: 0 },
+  },
 });
 module.exports = mongoose.model("Post", postSchema);
