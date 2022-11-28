@@ -32,8 +32,12 @@ module.exports.create = async (decode, req, res, next) => {
     res.status(500).json({ message: "something go wrong" });
   }
 };
-module.exports.update = (req, res, next) => {
+module.exports.update = async (decode, req, res, next) => {
   try {
+    const postId = req.params.id;
+    const content = req.body.content;
+    await Post.updateOne({ _id: postId }, { $set: { content } });
+    res.status(200).json({ message: "post updated" });
   } catch (err) {
     res.status(500).json({ message: "something go wrong" });
   }
@@ -52,21 +56,59 @@ module.exports.getById = async (req, res, next) => {
     res.status(500).json({ message: "something go wrong" });
   }
 };
-module.exports.delete = (req, res, next) => {
+module.exports.getPostComments = async (req, res, next) => {
+  const postId = req.params.id;
+  const { comments } = await Post.findById(postId)
+    .populate({
+      path: "comments",
+      populate: { path: "creatro", select: "_id fullName imagePath" },
+    })
+    .select("-_id comments");
+  res.status(200).json({ message: "post comments ", comments });
+};
+module.exports.delete = async (decode, req, res, next) => {
   try {
+    const postId = req.params.id;
+    await Post.deleteOne({ _id: postId });
+    res.status(200).json({ message: "post deleted" });
   } catch (err) {
     res.status(500).json({ message: "something go wrong" });
   }
 };
-module.exports.pushLike = (req, res, next) => {
+module.exports.pushLike = async (decode, req, res, next) => {
   try {
+    const creator = decode._id;
+    const postId = req.params.id;
+    await Post.updateOne(
+      { _id: postId, likes: { $ne: creator } },
+      { $push: { likes: creator }, $inc: { "metaData.likesCount": 1 } }
+    );
+    res.status(200).json({ message: "posted liked" });
   } catch (err) {
-    res.status(500).json({ message: "something go wrong" });
+    res.status(500).json({ message: "something go wrong", error: err.message });
   }
 };
-module.exports.popLike = (req, res, next) => {
+module.exports.pullLike = async (decode, req, res, next) => {
   try {
+    const creator = decode._id;
+    const postId = req.params.id;
+    await Post.updateOne(
+      { _id: postId, likes: creator },
+      { $pull: { likes: creator }, $inc: { "metaData.likesCount": -1 } }
+    );
+    res.status(200).json({ message: "posted un liked" });
   } catch (err) {
-    res.status(500).json({ message: "something go wrong" });
+    res.status(500).json({ message: "something go wrong", error: err.message });
+  }
+};
+module.exports.getPostLikes = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const likes = await Post.findById(postId)
+      .populate({ path: "likes", select: "_id fullName imagePath" })
+      .select("likes");
+    res.status(200).json({ message: "post likes", likes });
+  } catch (err) {
+    res.status(500).json({ message: "something go wrong", error: err.message });
   }
 };

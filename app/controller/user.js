@@ -2,7 +2,6 @@ const User = require("../model/user");
 const jwt = require("jsonwebtoken");
 const { JWT_KEY_WORD } = process.env;
 const bcrypt = require("bcrypt");
-const { updateOne } = require("../model/user");
 module.exports.getAll = async (req, res, next) => {
   const users = await User.find().select("-password");
   res

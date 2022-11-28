@@ -10,9 +10,12 @@ router.post(
   checkAuth,
   postController.create
 );
-router.patch("/:id", postController.update);
+router.patch("/:id", checkAuth, postController.update);
 router.get("/:id", postController.getById);
-router.delete("/:id", postController.delete);
-router.post("/push-like/:id", postController.pushLike);
-router.post("/pop-like/:id", postController.popLike);
+router.delete("/:id", checkAuth, postController.delete);
+router.get("/:id/comments", postController.getPostComments);
+router.post("/:id/like", checkAuth, postController.pushLike);
+router.delete("/:id/like", checkAuth, postController.pullLike);
+router.get("/:id/like", postController.getPostLikes);
+
 module.exports = router;
