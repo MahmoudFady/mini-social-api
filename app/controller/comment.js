@@ -1,5 +1,7 @@
 const Comment = require("../model/comment");
 const Post = require("../model/post");
+const fs = require("fs");
+const path = require("path");
 module.exports.create = async (decode, req, res, next) => {
   const commentData = {};
   commentData.creator = decode._id;
@@ -39,17 +41,23 @@ module.exports.update = async (decode, req, res, next) => {
 module.exports.delete = async (decode, req, res, next) => {
   const creator = decode._id;
   const commentId = req.params.id;
-  const deletedComment = await Comment.findOneAndDelete({
+  const { post, imagesPath } = await Comment.findOneAndDelete({
     _id: commentId,
     creator,
-  });
+  }).select("post imagesPath");
   await Post.updateOne(
-    { _id: deletedComment.post },
+    { _id: post },
     {
       $pull: { comments: commentId },
       $inc: { "metaData.commentsCount": -1 },
     }
   );
+  if (imagesPath.length > 0) {
+    const filesName = imagesPath.map((path) => path.split("/").pop(1));
+    for (const fileName of filesName) {
+      fs.unlinkSync(path.join(__dirname, "../uploads", fileName));
+    }
+  }
   return res.status(200).json({ message: "comment deleted" });
 };
 module.exports.pushLike = async (decode, req, res, next) => {

@@ -15,4 +15,5 @@ router.patch(
   checkAuth,
   userController.updateProfileImage
 );
+router.get("/:id/posts", userController.getUserPost);
 module.exports = router;

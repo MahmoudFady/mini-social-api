@@ -1,4 +1,7 @@
 const Post = require("../model/post");
+const fs = require("fs");
+const path = require("path");
+const { join } = require("path");
 module.exports.getAll = async (req, res, next) => {
   try {
     const posts = await Post.find();
@@ -68,8 +71,18 @@ module.exports.getPostComments = async (req, res, next) => {
 };
 module.exports.delete = async (decode, req, res, next) => {
   try {
+    const creator = decode._id;
     const postId = req.params.id;
-    await Post.deleteOne({ _id: postId });
+    const { imagesPath } = await Post.findOneAndDelete({
+      _id: postId,
+      creator,
+    }).select("imagesPath");
+    if (imagesPath.length > 0) {
+      const filesName = imagesPath.map((path) => path.split("/").pop());
+      for (const fileName of filesName) {
+        fs.unlinkSync(path.join(__dirname, "../uploads", fileName));
+      }
+    }
     res.status(200).json({ message: "post deleted" });
   } catch (err) {
     res.status(500).json({ message: "something go wrong" });

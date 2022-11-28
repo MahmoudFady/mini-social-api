@@ -1,4 +1,5 @@
 const User = require("../model/user");
+const Post = require("../model/post");
 const jwt = require("jsonwebtoken");
 const { JWT_KEY_WORD } = process.env;
 const bcrypt = require("bcrypt");
@@ -132,4 +133,16 @@ module.exports.updateProfileImage = async (decode, req, res, next) => {
   } catch (err) {
     res.status(500).json({ message: "something go wrong" });
   }
+};
+module.exports.getUserPost = async (req, res, next) => {
+  const userId = req.params.id;
+  const posts = await Post.find({ creator: userId })
+    .populate({
+      path: "creator",
+      select: "_id fullName imagePath",
+    })
+    .select("-likes -comments");
+  res
+    .status(200)
+    .json({ message: "user posts", postsCount: posts.length, posts });
 };
