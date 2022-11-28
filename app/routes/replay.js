@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const replayController = require("../controller/comment");
+const replayController = require("../controller/replay");
 router.post("/", replayController.create);
 router.patch("/:id", replayController.update);
 router.delete("/:id", replayController.delete);
