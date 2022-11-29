@@ -11,8 +11,15 @@ module.exports.getAll = async (req, res, next) => {
 };
 module.exports.signup = async (req, res, next) => {
   try {
-    const { fullName, email, phoneNumber, address, birthDate, password } =
-      req.body;
+    const {
+      fullName,
+      email,
+      phoneNumber,
+      address,
+      gender,
+      birthDate,
+      password,
+    } = req.body;
     const { country, state, city } = address;
     const existedUser = await User.findOne({
       $or: [{ email }, { phoneNumber }],
@@ -31,6 +38,7 @@ module.exports.signup = async (req, res, next) => {
       phoneNumber,
       address: { country, state, city },
       birthDate: new Date(birthDate),
+      gender,
       password: hash,
     }).save();
     const token = jwt.sign(
