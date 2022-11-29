@@ -134,15 +134,21 @@ module.exports.updateProfileImage = async (decode, req, res, next) => {
     res.status(500).json({ message: "something go wrong" });
   }
 };
-module.exports.getUserPost = async (req, res, next) => {
-  const userId = req.params.id;
-  const posts = await Post.find({ creator: userId })
-    .populate({
-      path: "creator",
-      select: "_id fullName imagePath",
-    })
-    .select("-likes -comments");
-  res
-    .status(200)
-    .json({ message: "user posts", postsCount: posts.length, posts });
+module.exports.getUserPosts = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+    const posts = await Post.find({ creator: userId })
+      .populate({
+        path: "creator",
+        select: "_id fullName imagePath",
+      })
+      .select("-likes -comments");
+    res
+      .status(200)
+      .json({ message: "user posts", postsCount: posts.length, posts });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "something go wrong", error: error.message });
+  }
 };
