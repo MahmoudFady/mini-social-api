@@ -8,7 +8,7 @@ router.post("/signup", userController.signup);
 router.post("/signin", userController.singin);
 router.get("/search-by-name", userController.searchByName);
 router.patch("/", checkAuth, userController.update);
-router.get("/:id", userController.getById);
+router.get("/:id", checkAuth, userController.getById);
 router.patch(
   "/profile-image",
   upload.single("profileImage"),
@@ -16,4 +16,5 @@ router.patch(
   userController.updateProfileImage
 );
 router.get("/:id/posts", userController.getUserPosts);
+router.delete("/id", checkAuth, userController.delete);
 module.exports = router;

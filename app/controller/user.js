@@ -3,11 +3,19 @@ const Post = require("../model/post");
 const jwt = require("jsonwebtoken");
 const { JWT_KEY_WORD } = process.env;
 const bcrypt = require("bcrypt");
+const fs = require("fs");
+const path = require("path");
 module.exports.getAll = async (req, res, next) => {
-  const users = await User.find().select("-password");
-  res
-    .status(200)
-    .json({ message: "all users", usersCount: users.length, users });
+  try {
+    const users = await User.find().select("fullName imagePath");
+    res
+      .status(200)
+      .json({ message: "all users", usersCount: users.length, users });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "something go wrong", error: error.message });
+  }
 };
 module.exports.signup = async (req, res, next) => {
   try {
@@ -50,8 +58,10 @@ module.exports.signup = async (req, res, next) => {
       user: newUser,
       token,
     });
-  } catch (err) {
-    res.status(500).json({ message: "something go wrong" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "something go wrong", error: error.message });
   }
 };
 
@@ -60,9 +70,7 @@ module.exports.singin = async (req, res, next) => {
     const { email, phoneNumber, password } = req.body;
     const criteria = email ? { email } : { phoneNumber };
     const existedUser = await User.findOne(criteria);
-    console.log(existedUser);
     if (!existedUser) {
-      console.log("user does not exist");
       return res
         .status(404)
         .json({ message: "account does't exist", user: null });
@@ -78,8 +86,10 @@ module.exports.singin = async (req, res, next) => {
     return res
       .status(200)
       .json({ message: "successfully signin", user: existedUser, token });
-  } catch (err) {
-    res.status(500).json({ message: "something go wrong" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "something go wrong", error: error.message });
   }
 };
 module.exports.update = async (decode, req, res, next) => {
@@ -111,8 +121,10 @@ module.exports.searchByName = async (req, res, next) => {
       fullName: { $regex: regex, $options: "i" },
     }).select("_id fullName imagePath");
     res.status(200).json({ usersCount: users.length, users });
-  } catch (err) {
-    res.status(500).json({ message: "something go wrong" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "something go wrong", error: error.message });
   }
 };
 
@@ -125,9 +137,11 @@ module.exports.getById = async (req, res, next) => {
         .status(404)
         .json({ message: "user does not exist", user: null });
     }
-    return res.status(200).json({ message: "successfully get the user", user });
-  } catch (err) {
-    res.status(500).json({ message: "something go wrong" });
+    return res.status(200).json({ message: "get user by id", user });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "something go wrong", error: error.message });
   }
 };
 module.exports.updateProfileImage = async (decode, req, res, next) => {
@@ -135,11 +149,12 @@ module.exports.updateProfileImage = async (decode, req, res, next) => {
     const userId = decode._id;
     const imagePath =
       req.protocol + "://" + req.get("host") + "/uploads/" + req.file.filename;
-    console.log(imagePath);
     await User.updateOne({ _id: userId }, { $set: { imagePath } });
     res.status(200).json({ message: "profile image updated", imagePath });
-  } catch (err) {
-    res.status(500).json({ message: "something go wrong" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "something go wrong", error: error.message });
   }
 };
 module.exports.getUserPosts = async (req, res, next) => {
@@ -154,6 +169,22 @@ module.exports.getUserPosts = async (req, res, next) => {
     res
       .status(200)
       .json({ message: "user posts", postsCount: posts.length, posts });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "something go wrong", error: error.message });
+  }
+};
+module.exports.delete = async (decode, req, res, next) => {
+  try {
+    const userId = decode._id;
+    const deletedUser = await User.findByIdAndDelete(userId).select(
+      "_id fullName imagePath"
+    );
+    res.status(200).json({ message: "delete user", deletedUser });
+    const imageName = deletedUser.imagePath.split("/").pop();
+    const filePath = path.join(__dirname, "../uploads", imageName);
+    fs.unlinkSync(filePath);
   } catch (error) {
     res
       .status(500)
