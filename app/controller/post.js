@@ -1,10 +1,15 @@
 const Post = require("../model/post");
 const fs = require("fs");
 const path = require("path");
-const { join } = require("path");
+const {
+  getUploadedFilesPath,
+  deleteArrayOfFiles,
+} = require("../util/shared-utils");
 module.exports.getAll = async (req, res, next) => {
   try {
-    const posts = await Post.find();
+    const posts = await Post.find()
+      .populate({ path: "creator", select: "fullName imagePath" })
+      .select("-comments -likes");
     res
       .status(200)
       .json({ message: "get all posts", postsCount: posts.length, posts });
@@ -19,12 +24,7 @@ module.exports.create = async (decode, req, res, next) => {
     postData.creator = decode._id;
     const files = req.files;
     if (files) {
-      const imagesPath = files.map((file) => {
-        return (
-          req.protocol + "://" + req.get("host") + "/uploads/" + file.filename
-        );
-      });
-      postData.imagesPath = imagesPath;
+      postData.imagesPath = getUploadedFilesPath(req);
     }
     const newPost = await (
       await new Post({ ...postData }).save()
@@ -78,10 +78,7 @@ module.exports.delete = async (decode, req, res, next) => {
       creator,
     }).select("imagesPath");
     if (imagesPath.length > 0) {
-      const filesName = imagesPath.map((path) => path.split("/").pop());
-      for (const fileName of filesName) {
-        fs.unlinkSync(path.join(__dirname, "../uploads", fileName));
-      }
+      deleteArrayOfFiles(imagesPath);
     }
     res.status(200).json({ message: "post deleted" });
   } catch (err) {

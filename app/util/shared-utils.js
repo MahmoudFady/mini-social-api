@@ -20,3 +20,9 @@ module.exports.getuploadedFilePath = (req) => {
     req.protocol + "://" + req.get("host") + "/uploads/" + req.file.filename;
   return filePath;
 };
+module.exports.getUploadedFilesPath = (req) => {
+  const imagesPath = req.files.map((file) => {
+    return req.protocol + "://" + req.get("host") + "/uploads/" + file.filename;
+  });
+  return imagesPath;
+};
